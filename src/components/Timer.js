@@ -12,14 +12,14 @@ function Timer({ dispatch, seconds }) {
     },
     [dispatch]
   );
-  return <div className="timer">{secondsToMinutes(seconds)}</div>;
+  return <div className="timer">{formatSeconds(seconds)}</div>;
 }
 
-function secondsToMinutes(seconds) {
+function formatSeconds(seconds) {
   const min = Math.floor(seconds / 60);
-  const sec = seconds - min * 60;
-  console.log(min, sec);
-  return `${min}:${sec}`;
+  const sec = seconds % 60;
+  console.log(sec);
+  return `${min < 10 ? 0 : ""}${min}:${sec < 10 ? 0 : ""}${sec}`;
 }
 
 export default Timer;

@@ -11,6 +11,7 @@ import FinishScreen from "./components/FinishScreen.js";
 import Timer from "./components/Timer.js";
 import Footer from "./components/Footer.js";
 
+const SECONDS_PER_QUESTION = 6;
 const initialState = {
   questions: [],
   //loading, error, ready, active, finished
@@ -19,17 +20,25 @@ const initialState = {
   answer: null,
   points: 0,
   highscore: 0,
-  secondsRemaining: 12,
+  secondsRemaining: 0,
 };
 
 function reducer(state, action) {
   switch (action.type) {
     case "dataReceived":
-      return { ...state, questions: action.payload, status: "ready" };
+      return {
+        ...state,
+        questions: action.payload,
+        status: "ready",
+      };
     case "dataFailed":
       return { ...state, status: "error" };
     case "start":
-      return { ...state, status: "active" };
+      return {
+        ...state,
+        status: "active",
+        secondsRemaining: state.questions.length * SECONDS_PER_QUESTION,
+      };
     case "newAnswer":
       const question = state.questions.at(state.index);
       return {
