@@ -10,8 +10,9 @@ import Progress from "./components/Progress.js";
 import FinishScreen from "./components/FinishScreen.js";
 import Timer from "./components/Timer.js";
 import Footer from "./components/Footer.js";
+import { qna } from "./Q&A.js";
 
-const SECONDS_PER_QUESTION = 6;
+const SECONDS_PER_QUESTION = 15;
 const initialState = {
   questions: [],
   //loading, error, ready, active, finished
@@ -40,13 +41,13 @@ function reducer(state, action) {
         secondsRemaining: state.questions.length * SECONDS_PER_QUESTION,
       };
     case "newAnswer":
-      const question = state.questions.at(state.index);
+      const q = qna.at(state.index);
       return {
         ...state,
         answer: action.payload,
         points:
-          question.correctOption === action.payload
-            ? state.points + question.points
+          q.correctOption === action.payload
+            ? state.points + q.points
             : state.points,
       };
     case "nextQuestion":
@@ -77,14 +78,11 @@ function reducer(state, action) {
 
 export default function App() {
   const [
-    { questions, status, index, answer, points, highscore, secondsRemaining },
+    { status, index, answer, points, highscore, secondsRemaining },
     dispatch,
   ] = useReducer(reducer, initialState);
-  const count = questions.length;
-  const maxPoints = questions.reduce(
-    (prev, current) => prev + current.points,
-    0
-  );
+  const count = qna.length;
+  const maxPoints = qna.reduce((prev, current) => prev + current.points, 0);
 
   useEffect(function () {
     fetch("http://localhost:8000/questions")
@@ -117,7 +115,7 @@ export default function App() {
               answer={answer}
             />
             <Question
-              question={questions[index]}
+              question={qna.at(index)}
               dispatch={dispatch}
               answer={answer}
             />
