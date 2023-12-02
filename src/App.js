@@ -10,134 +10,29 @@ import Progress from "./components/Progress.js";
 import FinishScreen from "./components/FinishScreen.js";
 import Timer from "./components/Timer.js";
 import Footer from "./components/Footer.js";
-import { qna } from "./Q&A.js";
-
-const SECONDS_PER_QUESTION = 15;
-const initialState = {
-  questions: [],
-  //loading, error, ready, active, finished
-  status: "loading",
-  index: 0,
-  answer: null,
-  points: 0,
-  highscore: 0,
-  secondsRemaining: 0,
-};
-
-function reducer(state, action) {
-  switch (action.type) {
-    case "dataReceived":
-      return {
-        ...state,
-        questions: action.payload,
-        status: "ready",
-      };
-    case "dataFailed":
-      return { ...state, status: "error" };
-    case "start":
-      return {
-        ...state,
-        status: "active",
-        secondsRemaining: state.questions.length * SECONDS_PER_QUESTION,
-      };
-    case "newAnswer":
-      const q = qna.at(state.index);
-      return {
-        ...state,
-        answer: action.payload,
-        points:
-          q.correctOption === action.payload
-            ? state.points + q.points
-            : state.points,
-      };
-    case "nextQuestion":
-      return { ...state, index: state.index++, answer: null };
-    case "finish":
-      return {
-        ...state,
-        status: "finished",
-        highscore: Math.max(state.highscore, state.points),
-      };
-    case "restart":
-      return {
-        ...initialState,
-        status: "ready",
-        highscore: state.highscore,
-        questions: state.questions,
-      };
-    case "tick":
-      return {
-        ...state,
-        secondsRemaining: state.secondsRemaining - 1,
-        status: state.secondsRemaining === 0 ? "finished" : state.status,
-      };
-    default:
-      throw new Error("Action was not recognised!");
-  }
-}
+import { useQuiz } from "./contexts/QuizContext.js";
 
 export default function App() {
-  const [
-    { status, index, answer, points, highscore, secondsRemaining },
-    dispatch,
-  ] = useReducer(reducer, initialState);
-  const count = qna.length;
-  const maxPoints = qna.reduce((prev, current) => prev + current.points, 0);
+  const { status } = useQuiz();
 
-  useEffect(function () {
-    fetch("http://localhost:8000/questions")
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error();
-        }
-      })
-      .then((data) => dispatch({ type: "dataReceived", payload: data }))
-      .catch(() => dispatch({ type: "dataFailed" }));
-  }, []);
   return (
     <div className="app">
       <Header />
       <Main>
         {status === "loading" && <Loader />}
         {status === "error" && <Error />}
-        {status === "ready" && (
-          <StartScreen count={count} dispatch={dispatch} />
-        )}
+        {status === "ready" && <StartScreen />}
         {status === "active" && (
           <>
-            <Progress
-              index={index}
-              count={count}
-              points={points}
-              maxPoints={maxPoints}
-              answer={answer}
-            />
-            <Question
-              question={qna.at(index)}
-              dispatch={dispatch}
-              answer={answer}
-            />
+            <Progress />
+            <Question />
             <Footer>
-              <Timer dispatch={dispatch} seconds={secondsRemaining} />
-              <NextButton
-                dispatch={dispatch}
-                answer={answer}
-                index={index}
-                count={count}
-              />
+              <Timer />
+              <NextButton />
             </Footer>
           </>
         )}
-        {status === "finished" && (
-          <FinishScreen
-            points={points}
-            maxPoints={maxPoints}
-            highscore={highscore}
-            dispatch={dispatch}
-          />
-        )}
+        {status === "finished" && <FinishScreen />}
       </Main>
     </div>
   );
